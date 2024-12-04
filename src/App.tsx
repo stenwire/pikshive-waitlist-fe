@@ -3,20 +3,72 @@ import {
   Camera, 
   Wallet, 
   Globe, 
-  Check 
+  Check,
+  X,
+  Users 
 } from 'lucide-react';
 
 const PikshiveLandingPage: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [waitlistCount, setWaitlistCount] = useState(1247);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Thank you for your interest, ${email}!`);
+    
+    // Simulate waitlist submission
+    setWaitlistCount(prevCount => prevCount + 1);
+    
+    // Open modal after submission
+    setIsModalOpen(true);
+    
+    // Reset email
     setEmail('');
+  };
+
+  const WhatsAppModal = () => {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+        <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-xl max-w-md w-full relative">
+          <button 
+            onClick={() => setIsModalOpen(false)}
+            className="absolute top-4 right-4 text-white/50 hover:text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          
+          <div className="text-center text-white">
+            <Check className="w-16 h-16 mx-auto text-green-400 mb-4" />
+            <h2 className="text-3xl font-bold mb-4">You're on the Waitlist!</h2>
+            <p className="text-white/80 mb-6">
+              We've added you to our exclusive Pikshive community. Join our WhatsApp group to stay updated.
+            </p>
+            
+            <a 
+              href="https://whatsapp.com/pikshive-community" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-block bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition"
+            >
+              Join WhatsApp Group
+            </a>
+            
+            <p className="text-xs text-white/50 mt-4">
+              By joining, you'll get:
+              • Early access updates
+              • Community insights
+              • Exclusive creator tips
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5e3cd1] via-[#4a5fd8] to-[#36a1e3] text-white">
+      {isModalOpen && <WhatsAppModal />}
+      
       <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent py-6">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="text-2xl font-bold tracking-tight">Pikshive</div>
@@ -37,6 +89,11 @@ const PikshiveLandingPage: React.FC = () => {
           <p className="text-xl text-white/80 max-w-2xl mx-auto mb-12">
             Pikshive is the ultimate platform for photographers, designers, and visual creators to showcase, monetize, and grow their digital portfolios.
           </p>
+
+          <div className="flex items-center justify-center mb-4">
+            <Users className="w-6 h-6 mr-2" />
+            <span className="text-lg">{waitlistCount.toLocaleString()} creators already joined</span>
+          </div>
 
           <form onSubmit={handleEmailSubmit} className="max-w-md mx-auto flex space-x-2">
             <input 
