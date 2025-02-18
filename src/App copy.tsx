@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Camera, 
   Wallet, 
@@ -9,60 +9,21 @@ import {
 } from 'lucide-react';
 
 const PikshiveLandingPage: React.FC = () => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [waitlistCount, setWaitlistCount] = useState(0);
+  const [email, setEmail] = useState('');
+  const [waitlistCount, setWaitlistCount] = useState(1247);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch waitlist count on component mount
-  useEffect(() => {
-    fetchWaitlistStats();
-  }, []);
-
-  const fetchWaitlistStats = async () => {
-    try {
-      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/stats");
-      const data = await response.json();
-      if (data && data.total_entries) {
-        setWaitlistCount(data.total_entries);
-      }
-    } catch (error) {
-      console.error("Failed to fetch waitlist stats:", error);
-    }
-  };
-
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    try {
-      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phone: phoneNumber }),
-      });
-      
-      if (response.ok) {
-        // Refresh waitlist count after successful submission
-        fetchWaitlistStats();
-        
-        // Open modal after submission
-        setIsModalOpen(true);
-        
-        // Reset phone number
-        setPhoneNumber('');
-      } else {
-        console.error("Failed to join waitlist:", await response.text());
-        alert("Failed to join waitlist. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting phone number:", error);
-      alert("An error occurred. Please try again later.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Simulate waitlist submission
+    setWaitlistCount(prevCount => prevCount + 1);
+    
+    // Open modal after submission
+    setIsModalOpen(true);
+    
+    // Reset email
+    setEmail('');
   };
 
   const WhatsAppModal = () => {
@@ -84,7 +45,7 @@ const PikshiveLandingPage: React.FC = () => {
             </p>
             
             <a 
-              href="https://chat.whatsapp.com/DOhYvCwFlilFvhIE2nrOGp" 
+              href="https://whatsapp.com/pikshive-community" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition"
@@ -134,23 +95,20 @@ const PikshiveLandingPage: React.FC = () => {
             <span className="text-lg">{waitlistCount.toLocaleString()} creators already joined</span>
           </div>
 
-          <form onSubmit={handlePhoneSubmit} className="max-w-md mx-auto flex space-x-2">
+          <form onSubmit={handleEmailSubmit} className="max-w-md mx-auto flex space-x-2">
             <input 
-              type="tel" 
-              placeholder="Enter your phone number"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              type="email" 
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="flex-grow px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50"
               required
-              pattern="[0-9+\s\-()]+"
-              title="Please enter a valid phone number"
             />
             <button 
               type="submit" 
-              className="bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition disabled:opacity-50"
-              disabled={isSubmitting}
+              className="bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition"
             >
-              {isSubmitting ? 'Joining...' : 'Join Waitlist'}
+              Join Waitlist
             </button>
           </form>
         </div>
@@ -207,7 +165,7 @@ const PikshiveLandingPage: React.FC = () => {
           </div>
           <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-xl">
             <p className="italic text-center mb-4">
-              "Pikshive will transform how you showcase and monetize your photography work."
+              "Pikshive will transform how ypu showcase and monetize your photography work."
             </p>
             <p className="text-center font-bold text-white/80">
               - Meso Shot, Professional Photographer
@@ -244,7 +202,7 @@ const PikshiveLandingPage: React.FC = () => {
       </section>
 
       <footer className="container mx-auto px-4 py-12 text-center">
-        <p>&copy; 2025 Pikshive. All rights reserved.</p>
+        <p>&copy; 2024 Pikshive. All rights reserved.</p>
       </footer>
     </div>
   );
