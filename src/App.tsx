@@ -101,7 +101,7 @@ const PikshiveLandingPage = () => {
 
   const fetchWaitlistStats = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/v1/waitlist/stats");
+      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/stats");
       const data = await response.json();
       if (data && data.total_entries) {
         setWaitlistCount(data.total_entries);
@@ -116,7 +116,7 @@ const PikshiveLandingPage = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("http://localhost:8000/api/v1/waitlist/", {
+      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ const PikshiveLandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5e3cd1] via-[#4a5fd8] to-[#36a1e3] text-white">
+    <div className="min-h-screen bg-black text-white">
       <ToastContainer />
       {isModalOpen && <WhatsAppModal />}
       
