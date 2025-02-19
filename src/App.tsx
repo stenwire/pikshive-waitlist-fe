@@ -1,18 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Camera, 
   Wallet, 
   Globe, 
   Check,
   X,
-  Users 
+  Users,
+  MessageCircleMore
 } from 'lucide-react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const PikshiveLandingPage: React.FC = () => {
+const PikshiveLandingPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [waitlistCount, setWaitlistCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const scrollRef = useRef(null);
+
+  // Image data with sources
+  const creatorImages = [
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-rsekoua-2402239.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-planeteelevene-16197729.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-planeteelevene-30730014.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-alameenng-30743705.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-planeteelevene-30756897.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-mwabonje-1820919.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-nappy-3063910.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    },
+    {
+      url: "https://pixhive.s3.us-east-2.amazonaws.com/images/pexels-edson-habacuc-rafael-317292-904332.jpg",
+      source: "https://www.pexels.com/search/nigerian/"
+    }
+  ];
+
+  // Improved scrolling logic
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    const totalWidth = creatorImages.length * 320; // 300px width + 20px gap
+    let currentPosition = 0;
+    
+    const scroll = () => {
+      currentPosition = (currentPosition + 1) % totalWidth;
+      setScrollPosition(currentPosition);
+
+      // Reset when reaching the end
+      if (currentPosition >= totalWidth / 2) {
+        currentPosition = 0;
+        setScrollPosition(0);
+      }
+    };
+
+    const interval = setInterval(scroll, 30);
+    return () => clearInterval(interval);
+  }, [creatorImages.length]);
+
+  // Image lazy loading
+  const imageObserver = useRef<IntersectionObserver | null>(null);
+  useEffect(() => {
+    imageObserver.current = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          img.src = img.dataset.src!;
+          if (imageObserver.current) {
+            imageObserver.current.unobserve(img);
+          }
+        }
+      });
+    });
+  }, []);
 
   // Fetch waitlist count on component mount
   useEffect(() => {
@@ -21,7 +101,7 @@ const PikshiveLandingPage: React.FC = () => {
 
   const fetchWaitlistStats = async () => {
     try {
-      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/stats");
+      const response = await fetch("http://localhost:8000/api/v1/waitlist/stats");
       const data = await response.json();
       if (data && data.total_entries) {
         setWaitlistCount(data.total_entries);
@@ -36,12 +116,12 @@ const PikshiveLandingPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist", {
+      const response = await fetch("http://localhost:8000/api/v1/waitlist/", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phone: phoneNumber }),
+        body: JSON.stringify({ phone_number: phoneNumber }),
       });
       
       if (response.ok) {
@@ -54,12 +134,16 @@ const PikshiveLandingPage: React.FC = () => {
         // Reset phone number
         setPhoneNumber('');
       } else {
-        console.error("Failed to join waitlist:", await response.text());
-        alert("Failed to join waitlist. Please try again.");
+        const errorData = await response.json();
+        if (errorData.phone_number) {
+          toast.error(errorData.phone_number[0]);
+        } else {
+          toast.error("Failed to join waitlist. Please try again.");
+        }
       }
     } catch (error) {
       console.error("Error submitting phone number:", error);
-      alert("An error occurred. Please try again later.");
+      toast.error("An error occurred. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -80,16 +164,17 @@ const PikshiveLandingPage: React.FC = () => {
             <Check className="w-16 h-16 mx-auto text-green-400 mb-4" />
             <h2 className="text-3xl font-bold mb-4">You're on the Waitlist!</h2>
             <p className="text-white/80 mb-6">
-              We've added you to our exclusive Pikshive community. Join our WhatsApp group to stay updated.
+              We've added you to our exclusive Pikshive waitlist. Join our WhatsApp group to stay updated.
             </p>
             
             <a 
               href="https://chat.whatsapp.com/DOhYvCwFlilFvhIE2nrOGp" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-block bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition"
+              className="inline-block bg-white text-[#5e3cd1] px-6 py-3 rounded-full hover:opacity-90 transition flex items-center justify-center space-x-2"
             >
-              Join WhatsApp Group
+              <MessageCircleMore className="w-6 h-6" />
+              <span>Join WhatsApp Community</span>
             </a>
             
             <p className="text-xs text-white/50 mt-4">
@@ -106,16 +191,22 @@ const PikshiveLandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#5e3cd1] via-[#4a5fd8] to-[#36a1e3] text-white">
+      <ToastContainer />
       {isModalOpen && <WhatsAppModal />}
       
       <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent py-6">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="text-2xl font-bold tracking-tight">Pikshive</div>
           <div className="space-x-4">
-            <a href="#features" className="text-white/80 hover:text-white">Features</a>
-            <button className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition">
-              Get Started
-            </button>
+            <a 
+              href="https://chat.whatsapp.com/DOhYvCwFlilFvhIE2nrOGp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition flex items-center space-x-2"
+            >
+              <MessageCircleMore className="w-6 h-6" />
+              <span>Join</span>
+            </a>
           </div>
         </div>
       </nav>
@@ -142,7 +233,7 @@ const PikshiveLandingPage: React.FC = () => {
               onChange={(e) => setPhoneNumber(e.target.value)}
               className="flex-grow px-4 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50"
               required
-              pattern="[0-9+\s\-()]+"
+              pattern="^[0-9+\s\-()]+$"
               title="Please enter a valid phone number"
             />
             <button 
@@ -155,7 +246,55 @@ const PikshiveLandingPage: React.FC = () => {
           </form>
         </div>
 
+        <section className="container mx-auto px-4 py-16 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold mb-6 text-center">Showcase Your Creativity 🌟</h2>
+          <div className="relative overflow-hidden rounded-xl">
+            <div 
+              ref={scrollRef}
+              className="flex gap-5 transition-transform duration-500 ease-linear"
+              style={{
+                transform: `translateX(-${scrollPosition}px)`,
+                width: `${creatorImages.length * 320}px`
+              }}
+            >
+              {[...creatorImages, ...creatorImages].map((image, index) => (
+                <div
+                  key={index}
+                  className="relative group flex-shrink-0 rounded-lg overflow-hidden w-[300px] h-[400px] bg-white/10 backdrop-blur-md border border-white/20"
+                >
+                  <img 
+                    data-src={image.url}
+                    alt={`Creator ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    ref={el => {
+                      if (el) {
+                        if (imageObserver.current) {
+                          imageObserver.current.observe(el);
+                        }
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <a 
+                      href={image.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white text-sm hover:underline"
+                    >
+                      Source: Pexels
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
         <div className="mt-24 relative z-10">
+          <h2 className="text-4xl font-bold mb-6 text-center">Get Elevated 🤘🚀</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
@@ -216,32 +355,52 @@ const PikshiveLandingPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-16 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold mb-6 text-center">Real Creators, Real Stories</h2>
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-xl">
-            <iframe 
-              width="100%" 
-              height="500" 
-              src="https://www.youtube.com/embed/CMqw9usH8-8" 
-              title="Creator Showcase Video" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
-            <p className="mt-4 text-center text-white/80">
-              Clip created by: <a 
-                href="https://www.youtube.com/@fakeplastictree1553" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="underline hover:text-white"
-              >
-                @fakeplastictree1553
-              </a>
-            </p>
+      {/* <section className="container mx-auto px-4 py-16 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold mb-6 text-center">Showcase Your Creativity</h2>
+          <div className="relative overflow-hidden rounded-xl">
+            <div 
+              ref={scrollRef}
+              className="flex gap-5 transition-transform duration-500 ease-linear"
+              style={{
+                transform: `translateX(-${scrollPosition}px)`,
+                width: `${creatorImages.length * 320}px`
+              }}
+            >
+              {[...creatorImages, ...creatorImages].map((image, index) => (
+                <div
+                  key={index}
+                  className="relative group flex-shrink-0 rounded-lg overflow-hidden w-[300px] h-[400px] bg-white/10 backdrop-blur-md border border-white/20"
+                >
+                  <img 
+                    data-src={image.url}
+                    alt={`Creator ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    ref={el => {
+                      if (el) {
+                        if (imageObserver.current) {
+                          imageObserver.current.observe(el);
+                        }
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <a 
+                      href={image.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white text-sm hover:underline"
+                    >
+                      Source: Pexels
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <footer className="container mx-auto px-4 py-12 text-center">
         <p>&copy; 2025 Pikshive. All rights reserved.</p>
