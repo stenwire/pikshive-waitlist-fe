@@ -41,7 +41,10 @@ const PikshiveLandingPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phone: phoneNumber }),
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          in_whatsapp_group: false,
+        }),
       });
       
       if (response.ok) {
