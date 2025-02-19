@@ -101,7 +101,7 @@ const PikshiveLandingPage = () => {
 
   const fetchWaitlistStats = async () => {
     try {
-      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/stats");
+      const response = await fetch("https://satisfactory-sheela-sten-2711061c.koyeb.app/api/v1/waitlist/stats/");
       const data = await response.json();
       if (data && data.total_entries) {
         setWaitlistCount(data.total_entries);
